@@ -1,50 +1,124 @@
-import React, { useState } from "react";
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView } from "react-native";
+import React, { useEffect, useState } from "react"; 
+import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const CompanyProfile = ({ onEdit }) => {
-  // Default company data
-  const [profileData] = useState({
-    company_name: "Green Waste Solutions",
-    location: "Los Angeles, CA",
-    contact_number: "+1 234 567 890",
-    profile_image: "https://www.w3schools.com/w3images/avatar2.png",
-    buildingImages: [
-      "https://www.w3schools.com/w3images/house5.jpg",
-      "https://www.w3schools.com/w3images/house2.jpg",
-    ],
-  });
+const Companyprofile = ({navigation}) => {
+  const [profileData, setProfileData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+    const [userId, setUserId] = useState(null);
 
-  const { company_name, location, contact_number, profile_image, buildingImages } = profileData;
+    useEffect(() => {
+      const fetchUserid = async () => {
+        try {
+          const storedData = await AsyncStorage.getItem("@UserStore:data");
+          console.log("Raw Stored Data:", storedData);
+          
+          if (!storedData) {
+            console.warn("No user data found in AsyncStorage.");
+            return;
+          }
+    
+          const parsedData = JSON.parse(storedData);
+          console.log("Parsed User ID:", parsedData.user_id);
+          setUserId(parsedData.user_id);
+        } catch (error) {
+          console.error("Error fetching user ID:", error);
+        }
+      };
+    
+      fetchUserid();
+    }, []);    
+    
+    useEffect(() => {
+      if (!userId) {
+        console.log("User ID is still null, skipping API call...");
+        return;
+      }
+    
+      const fetchProfile = async () => {
+        try {
+          console.log("Fetching profile for user ID:", userId);
+          const response = await fetch(`https://binwinbackend.onrender.com/displaycompanyprofile?user_id=${userId}`);
+          const data = await response.json();
+          console.log("Fetched Data:", data.profile);
+    
+          if (data.profile) {
+            setProfileData(data.profile);
+          } else {
+            setError("Failed to load profile");
+          }
+        } catch (error) {
+          console.error("Error fetching profile:", error);
+          setError("Failed to load profile");
+        } finally {
+          setLoading(false);
+        }
+      };
+   fetchProfile();
+    }, [userId]);
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#166534" style={styles.loader} />;
+  }
+
+  if (error) {
+    return <Text style={styles.errorText}>{error}</Text>;
+  }
+
+  const { company_name, location, contact_number, price, profile_image, visits , building_images} = profileData || {};
+
+  if (!profileData) {
+    return <Text style={styles.errorText}>Loading profile data...</Text>;
+  }  
 
   return (
     <ScrollView style={styles.container}>
+      {/* Header with Edit Button */}
+      <View style={styles.headerContainer}>
+        <TouchableOpacity style={styles.editButton} onPress={()=>navigation.navigate("AddCompanyprofile")}>
+          <Text style={styles.editButtonText} >✏ Edit</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Profile Image Section */}
       <Text style={styles.sectionTitle}>🏢 Company Profile</Text>
       <View style={styles.header}>
-        <Image source={{ uri: profile_image }} style={styles.profileImage} />
-        <Text style={styles.companyName}>{company_name}</Text>
-        <Text style={styles.username}>@{company_name.toLowerCase().replace(/\s+/g, "")}</Text>
+        <Image
+          source={{ uri: profile_image || "https://www.w3schools.com/w3images/avatar2.png" }}
+          style={styles.profileImage}
+        />
+        <Text style={styles.companyName}>{company_name || "Not Set"}</Text>
+        <Text style={styles.username}>@{company_name?.toLowerCase().replace(/\s+/g, "") || "company"}</Text>
       </View>
 
       {/* Profile Details */}
       <View style={styles.profileDetails}>
-        <Text style={styles.detailText}>📍 Location: {location}</Text>
-        <Text style={styles.detailText}>📞 Contact: {contact_number}</Text>
-        <Text style={styles.detailText}>💰 Price: 10/Kg</Text>
-        <Text style={styles.detailText}>👀 Visits: 2</Text>
+        <Text style={styles.detailText}>📍 Location: {location || "Not Set"}</Text>
+        <Text style={styles.detailText}>📞 Contact: {contact_number || "Not Set"}</Text>
+        <Text style={styles.detailText}>💰 Price: {price ? `$${price}` : "$10"}</Text>
+        <Text style={styles.detailText}>👀 Visits: {visits || 0}</Text>
       </View>
 
       {/* Company Building Images Section */}
       <Text style={styles.sectionTitle}>🏢 Company Images</Text>
-      {buildingImages.length > 0 ? (
-        <View style={styles.buildingContainer}>
-          {buildingImages.map((img, index) => (
-            <Image key={index} source={{ uri: img }} style={styles.buildingImage} />
-          ))}
-        </View>
-      ) : (
-        <Text style={styles.noImageText}>No Building Images Available</Text>
-      )}
+      {building_images ? (
+  <View style={styles.buildingContainer}>
+    {building_images
+      .replace("{", "") // Remove '{'
+      .replace("}", "") // Remove '}'
+      .split(",") // Split into an array
+      .map((img, index) => (
+        <Image 
+          key={index} 
+          source={{ uri: img.trim() }} // Trim spaces from URLs
+          style={styles.buildingImage} 
+        />
+      ))}
+  </View>
+) : (
+  <Text style={styles.noImageText}>No Building Images Available</Text>
+)}
     </ScrollView>
   );
 };
@@ -55,6 +129,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f3f4f6",
     padding: 24,
+  },
+  loader: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  errorText: {
+    textAlign: "center",
+    color: "red",
+    fontSize: 18,
+    marginTop: 20,
   },
   headerContainer: {
     alignItems: "flex-end",
@@ -85,7 +170,7 @@ const styles = StyleSheet.create({
   profileImage: {
     width: 180,
     height: 180,
-    borderRadius: 90,
+    borderRadius: 90, // Fully rounded
     borderWidth: 4,
     borderColor: "#166534",
   },
@@ -121,8 +206,8 @@ const styles = StyleSheet.create({
   buildingImage: {
     width: 180,
     height: 180,
-    borderRadius: 10,
-    borderWidth: 2,
+    borderRadius: 90, // Fully rounded
+    borderWidth: 4,
     borderColor: "#166534",
     marginBottom: 15,
   },
@@ -134,4 +219,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CompanyProfile;
+export default Companyprofile;

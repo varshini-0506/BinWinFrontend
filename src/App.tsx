@@ -17,8 +17,9 @@ import Charity from './screens/Charity';
 import CompanyHomepage from './screens/CompanyHomepage';
 import CompanySchedule from './screens/CompanySchedule';
 import Maps from './screens/Maps';
-import CompanyProfile from './screens/Companyprofile';
+import Companyprofile from './screens/Companyprofile';
 import ScheduleProfile from './screens/ScheduleProfile';
+import AddCompanyprofile from './screens/AddCompanyprofile';
 
 export type RootStackParamList = {
   Homepage: undefined;
@@ -46,8 +47,9 @@ const App = ()=>{
      <Stack.Screen name="CompanyHomepage" component={CompanyHomepage} options={{ headerShown: false }}      />
       <Stack.Screen name="CompanySchedule" component={CompanySchedule} options={{ headerShown: false }}      />
       <Stack.Screen name="Maps" component={Maps} options={{ headerShown: false }}      />
-      <Stack.Screen name="CompanyProfile" component={CompanyProfile} options={{ headerShown: false }}      />
+      <Stack.Screen name="Companyprofile" component={Companyprofile} options={{ headerShown: false }}      />
       <Stack.Screen name="ScheduleProfile" component={ScheduleProfile} options={{ headerShown: false }}/>
+      <Stack.Screen name="AddCompanyprofile" component={AddCompanyprofile} options={{ headerShown: false }}/>
       </Stack.Navigator>
   </NavigationContainer>
   );

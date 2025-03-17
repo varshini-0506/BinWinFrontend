@@ -2,12 +2,14 @@ import React, { useState } from "react";
 import { View, Text, TouchableOpacity, StyleSheet, Platform } from "react-native";
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-const CompanySchedule = ({ navigation }) => {
+const CompanySchedule = ({ navigation, route }) => {
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const location = "Madurai, TamilNadu,India";
+  const { user_id } = route.params;
+  console.log("clicked user id", user_id);
 
   const onDateChange = (event, selectedDate) => {
     setShowDatePicker(false);

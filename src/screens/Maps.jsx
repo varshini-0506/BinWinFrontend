@@ -45,6 +45,7 @@ const Maps = ({navigation}) => {
           longitude: parseFloat(user.longitude),
           user_name: user.name,
           bio: user.bio || "User Location",
+          user_id: user.user_id
         }));
         setUserMarkers(markers);
       } else {

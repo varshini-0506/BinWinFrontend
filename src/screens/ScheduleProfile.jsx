@@ -3,8 +3,6 @@ import { View, Text, Image, TouchableOpacity, Dimensions, StyleSheet, ScrollView
 import { useNavigation } from "@react-navigation/native";
 import { BarChart } from "react-native-chart-kit";
 
-const API_URL = "https://binwinbackend.onrender.com/displayprofile?user_id=1";
-
 const getTreeImage = (visits) => {
   if (visits >= 20) return "https://ik.imagekit.io/varsh0506/Bin%20Win/forest.png";
   if (visits >= 10) return "https://ik.imagekit.io/varsh0506/Bin%20Win/plant-pot.png";
@@ -12,7 +10,11 @@ const getTreeImage = (visits) => {
   return "https://ik.imagekit.io/varsh0506/Bin%20Win/seed.png";
 };
 
-const ScheduleProfile = () => {
+const ScheduleProfile = ({route}) => {
+
+  const {user_id} = route.params;
+  const API_URL = `https://binwinbackend.onrender.com/displayprofile?user_id=${user_id}`;
+
   const navigation = useNavigation();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -88,7 +90,7 @@ const ScheduleProfile = () => {
         />
       </ScrollView>
 
-      <TouchableOpacity style={styles.fixedButton} onPress={()=>navigation.navigate("CompanySchedule")}>
+      <TouchableOpacity style={styles.fixedButton} onPress={()=>navigation.navigate("CompanySchedule" , {user_id: user_id})}>
         <Text style={styles.buttonText}>Schedule</Text>
       </TouchableOpacity>
     </View>

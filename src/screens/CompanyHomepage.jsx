@@ -119,7 +119,7 @@ export default function HomePage({ navigation }) {
 
       {/* Bottom Navigation Bar */}
       <View style={styles.bottomNavBar}>
-        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("CompanyProfile")}>
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Companyprofile")}>
           <User size={26} color="gray" />
           <Text style={styles.navText}>
             Profile

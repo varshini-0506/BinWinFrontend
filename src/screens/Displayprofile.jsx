@@ -3,8 +3,7 @@ import { View, Text, Image, TouchableOpacity, Dimensions, StyleSheet, ScrollView
 import { useNavigation } from "@react-navigation/native";
 import { BarChart } from "react-native-chart-kit";
 import { Home, User, Trophy, Gamepad } from "lucide-react-native";
-
-const API_URL = "https://binwinbackend.onrender.com/displayprofile?user_id=1";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const getTreeImage = (visits) => {
   if (visits >= 20) {
@@ -23,20 +22,47 @@ const Displayprofile = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
-    fetch(API_URL)
-      .then((response) => response.json())
-      .then((data) => {
+    const fetchUserid = async () => {
+      try {
+        const storedData = await AsyncStorage.getItem("@UserStore:user_id");
+        if (storedData !== null) {
+          const parsedData = JSON.parse(storedData);
+          setUserId(parsedData.user_id); // ✅ Set userId state
+        }
+      } catch (error) {
+        console.error("Error fetching user ID:", error);
+      }
+    };
+
+    fetchUserid();
+  }, []);
+
+  useEffect(() => {
+    if (!userId) return; // Wait for userId to be set
+
+    const fetchUserProfile = async () => {
+      try {
+        const response = await fetch(
+          `https://binwinbackend.onrender.com/displayprofile?user_id=${userId}`
+        );
+        const data = await response.json();
         if (data.profile) {
           setProfile(data.profile);
         } else {
           setError("Failed to load profile data");
         }
-      })
-      .catch((err) => setError("Error fetching data"))
-      .finally(() => setLoading(false));
-  }, []);
+      } catch (err) {
+        setError("Error fetching data");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserProfile();
+  }, [userId]); 
 
   if (loading) {
     return (
@@ -96,7 +122,6 @@ const Displayprofile = () => {
         />
       </ScrollView>
 
-      {/* Fixed Navbar */}
       <View style={styles.navBar}>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Displayprofile")}>
           <User size={26} color="gray" />

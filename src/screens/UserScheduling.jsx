@@ -14,60 +14,6 @@ import {
   Alert,
 } from "react-native";
 
-// Company Data
-const initialCompanies = [
-  {
-    id: "1",
-    name: "Eco Kaari",
-    image: "https://ik.imagekit.io/zcdsz07ad/ecokaari.png?updatedAt=1741870357737",
-    subtitle: "Upcycling waste into eco-friendly products.",
-    schedule: "2024-07-20",
-    location: "From your current location",
-    pricePerKg: 10,
-    requirement: ["Biodegradable", "Non-Biodegradable", "Recyclable"],
-  },
-  {
-    id: "2",
-    name: "GreenTech Recycle",
-    image: "https://ik.imagekit.io/zcdsz07ad/greentech.png?updatedAt=1741870861808",
-    subtitle: "Specialized in recycling electronic waste.",
-    schedule: "2024-07-25",
-    location: "From your current location",
-    pricePerKg: 12,
-    requirement: ["Non-Biodegradable", "Recyclable"],
-  },
-  {
-    id: "3",
-    name: "Attero",
-    image: "https://ik.imagekit.io/zcdsz07ad/attero.png?updatedAt=1741870922564",
-    subtitle: "Innovative solutions for plastic waste management.",
-    schedule: "2024-08-01",
-    location: "From your current location",
-    pricePerKg: 8,
-    requirement: ["Recyclable"],
-  },
-  {
-    id: "4",
-    name: "RecommerceX",
-    image: "https://ik.imagekit.io/zcdsz07ad/recommercex.png?updatedAt=1741870462849",
-    subtitle: "Transforming organic waste into useful products.",
-    schedule: "2024-07-15",
-    location: "From your current location",
-    pricePerKg: 9,
-    requirement: ["Biodegradable"],
-  },
-  {
-    id: "5",
-    name: "Recykal",
-    image: "https://ik.imagekit.io/zcdsz07ad/recykal.png?updatedAt=1741870517081",
-    subtitle: "Recycling old electronic devices efficiently.",
-    schedule: "2024-07-10",
-    location: "From your current location",
-    pricePerKg: 11,
-    requirement: ["Non-Biodegradable", "Recyclable"],
-  },
-];
-
 // Helper: Generate Next 3 Collection Dates
 const getNextDates = (currentDate) => {
   const nextDates = [];
@@ -84,7 +30,7 @@ const getNextDates = (currentDate) => {
 };
 
 const UserSchedule = () => {
-  const [companies, setCompanies] = useState(initialCompanies);
+  const [companies, setCompanies] = useState([]);
   const [selectedCompany, setSelectedCompany] = useState(null);
   const [showAcceptModal, setShowAcceptModal] = useState(false);
   const [showDeclineModal, setShowDeclineModal] = useState(false);
@@ -96,20 +42,40 @@ const UserSchedule = () => {
   const [declineReason, setDeclineReason] = useState("");
   const [nextCollectionDates, setNextCollectionDates] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
+  const [userId, setUserId] = useState(null);
 
   // Load data on mount
   useEffect(() => {
-    const loadCompanies = async () => {
+    const fetchUserid = async () => {
       try {
-        const storedCompanies = await AsyncStorage.getItem('companies');
-        if (storedCompanies) {
-          setCompanies(JSON.parse(storedCompanies));
+        const storedData = await AsyncStorage.getItem("@UserStore:data");
+        console.log("Raw Stored Data:", storedData);
+
+        if (!storedData) {
+          console.warn("No user data found in AsyncStorage.");
+          return;
+        }
+
+        const parsedData = JSON.parse(storedData);
+        console.log("Parsed User ID:", parsedData.user_id);
+
+        setUserId(parsedData.user_id);
+
+        // API call to fetch company schedules
+        const response = await fetch(`https://binwinbackend.onrender.com/displayuserSchedule?user_id=${parsedData.user_id}`);
+        const data = await response.json();
+
+        if (response.ok) {
+          setCompanies(data.schedules);
+        } else {
+          console.error("Error fetching schedules:", data.error);
         }
       } catch (error) {
-        console.error("Failed to load companies data:", error);
+        console.error("Error fetching user ID or schedules:", error);
       }
     };
-    loadCompanies();
+
+    fetchUserid();
   }, []);
 
   // Handle Accept Click
@@ -128,7 +94,7 @@ const UserSchedule = () => {
   // Calculate reimbursement based on waste quantity (kg)
   const handleQuantityChange = (value) => {
     const quantity = parseFloat(value) || 0;
-    const reimbursement = quantity * (selectedCompany?.pricePerKg || 10);
+    const reimbursement = quantity * (selectedCompany?.price || 10);
     setUserData({ ...userData, wasteQuantity: value, reimbursement });
   };
 
@@ -159,8 +125,8 @@ const UserSchedule = () => {
 
   // Accept Modal Submit Handler
   const handleAcceptSubmit = () => {
-    if (!userData.mobile || !userData.wasteQuantity) {
-      Alert.alert("Error", "Please enter mobile number and waste quantity.");
+    if (!userData.wasteQuantity) {
+      Alert.alert("Error", "Please enter waste quantity.");
       return;
     }
     Alert.alert(
@@ -189,17 +155,20 @@ const UserSchedule = () => {
   return (
     <ScrollView style={styles.container}>
       {companies.map((company) => (
-        <View key={company.id} style={styles.card}>
-          <TouchableOpacity onPress={() => handleSelectImage(company.id)}>
+        <View key={company.company_id} style={styles.card}>
+          <TouchableOpacity onPress={() => handleSelectImage(company.company_id)}>
             <Image
-              source={{ uri: company.image }}
+              source={{ uri: company.profile_image }}
               style={styles.image}
             />
           </TouchableOpacity>
-          <Text style={styles.name}>{company.name}</Text>
+          <Text style={styles.name}>{company.company_name}</Text>
           <Text style={styles.subtitle}>
-            📍 Location: {company.location} | 📅 Scheduled: {company.schedule}
+            📍 Location: Your Current Location 
           </Text>
+          <Text style={styles.subtitle}>📅 Scheduled: {company.date} - {company.time}</Text>
+          <Text style={styles.subtitle}>📞 Contact: {company.contact_number}</Text>
+          <Text style={styles.subtitle}>💰 Price: ₹{company.price}/kg</Text>
           <View style={styles.row}>
             <TouchableOpacity
               style={styles.acceptButton}
@@ -216,50 +185,64 @@ const UserSchedule = () => {
           </View>
         </View>
       ))}
-      <Modal visible={showAcceptModal} animationType="slide">
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Accept Collection</Text>
-          <TextInput
-            style={styles.inputField}
-            placeholder="Mobile Number"
-            value={userData.mobile}
-            onChangeText={(text) => setUserData({ ...userData, mobile: text })}
-          />
-          <TextInput
-            style={styles.inputField}
-            placeholder="Waste Quantity (kg)"
-            value={userData.wasteQuantity}
-            onChangeText={handleQuantityChange}
-            keyboardType="numeric"
-          />
-          <Text>Reimbursement: ₹{userData.reimbursement.toFixed(2)}</Text>
-          <Button title="Submit" onPress={handleAcceptSubmit} />
-          <Button title="Cancel" onPress={() => setShowAcceptModal(false)} />
-        </View>
-      </Modal>
-      <Modal visible={showDeclineModal} animationType="slide">
-        <View style={styles.modalContainer}>
-          <Text style={styles.modalTitle}>Decline Collection</Text>
-          <TextInput
-            style={styles.inputField}
-            placeholder="Reason for Decline"
-            value={declineReason}
-            onChangeText={(text) => setDeclineReason(text)}
-          />
-          <Text>Select New Collection Date:</Text>
-          {nextCollectionDates.map((date) => (
-            <TouchableOpacity
-              key={date}
-              style={styles.dateButton}
-              onPress={() => setSelectedDate(date)}
-            >
-              <Text style={styles.dateText}>{date}</Text>
-            </TouchableOpacity>
-          ))}
-          <Button title="Submit" onPress={handleDeclineSubmit} />
-          <Button title="Cancel" onPress={() => setShowDeclineModal(false)} />
-        </View>
-      </Modal>
+     <Modal visible={showAcceptModal} animationType="slide" transparent={true}>
+  <View style={styles.modalOverlay}>
+    <View style={styles.modalContainer}> 
+      <Text style={styles.modalTitle}>✅ Accept Collection</Text>
+      <TextInput
+        style={styles.inputField}
+        placeholder="♻️ Waste Quantity (kg)"
+        placeholderTextColor="#6E8B74"
+        value={userData.wasteQuantity}
+        onChangeText={handleQuantityChange}
+        keyboardType="numeric"
+      />
+      <Text style={styles.reimbursementText}>
+        💰 Reimbursement: ₹{userData.reimbursement.toFixed(2)}
+      </Text>
+      <TouchableOpacity style={styles.submitButton} onPress={handleAcceptSubmit}>
+        <Text style={styles.buttonText}>Submit</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.cancelButton} onPress={() => setShowAcceptModal(false)}>
+        <Text style={styles.buttonText}>Cancel</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
+
+<Modal visible={showDeclineModal} animationType="slide" transparent={true}>
+  <View style={styles.modalOverlay}>
+    <View style={styles.modalContainer}> 
+      <Text style={styles.modalTitle}>❌ Decline Collection</Text>
+      <TextInput
+        style={styles.inputField}
+        placeholder="📋 Reason for Decline"
+        placeholderTextColor="#6E8B74"
+        value={declineReason}
+        onChangeText={(text) => setDeclineReason(text)}
+      />
+      <Text style={styles.label}>📅 Select New Collection Date:</Text>
+      {nextCollectionDates.map((date) => (
+        <TouchableOpacity
+          key={date}
+          style={[
+            styles.dateButton,
+            selectedDate === date && styles.selectedDate
+          ]}
+          onPress={() => setSelectedDate(date)}
+        >
+          <Text style={styles.dateText}>{date}</Text>
+        </TouchableOpacity>
+      ))}
+      <TouchableOpacity style={styles.submitButton} onPress={handleDeclineSubmit}>
+        <Text style={styles.buttonText}>Submit</Text>
+      </TouchableOpacity>
+      <TouchableOpacity style={styles.cancelButton} onPress={() => setShowDeclineModal(false)}>
+        <Text style={styles.buttonText}>Cancel</Text>
+      </TouchableOpacity>
+    </View>
+  </View>
+</Modal>
     </ScrollView>
   );
 };
@@ -273,12 +256,83 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row", justifyContent: "space-between", width: "80%" },
   acceptButton: { backgroundColor: "#58CC02", padding: 10, borderRadius: 5, width: "45%", alignItems: "center" },
   declineButton: { backgroundColor: "#F4A900", padding: 10, borderRadius: 5, width: "45%", alignItems: "center" },
-  buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-  modalContainer: { padding: 20, backgroundColor: "#fff", borderRadius: 10 },
-  modalTitle: { fontSize: 20, marginBottom: 10, color: "#379237", fontWeight: "bold" },
-  inputField: { height: 40, borderColor: "#379237", borderWidth: 1, marginBottom: 10, padding: 10, borderRadius: 5 },
-  dateButton: { backgroundColor: "#ddd", padding: 10, marginBottom: 10, borderRadius: 5 },
-  dateText: { fontSize: 16, color: "#379237" },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContainer: {
+    backgroundColor: '#DFFFD6',
+    padding: 25,
+    borderRadius: 20,
+    width: '90%',
+    alignItems: 'center',
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#379237',
+    marginBottom: 20,
+  },
+  inputField: {
+    height: 50,
+    width: '100%',
+    borderColor: '#4CAF50',
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 15,
+    marginBottom: 15,
+    color: '#2C5F2D',
+    backgroundColor: '#F0FFF0',
+  },
+  reimbursementText: {
+    fontSize: 18,
+    color: '#2C5F2D',
+    marginVertical: 10,
+  },
+  label: {
+    fontSize: 16,
+    color: '#2C5F2D',
+    marginBottom: 10,
+    alignSelf: 'flex-start',
+  },
+  dateButton: {
+    padding: 12,
+    borderRadius: 8,
+    backgroundColor: '#E8F5E9',
+    marginVertical: 5,
+    width: '100%',
+    alignItems: 'center',
+  },
+  selectedDate: {
+    backgroundColor: '#4CAF50',
+  },
+  dateText: {
+    fontSize: 16,
+    color: '#2C5F2D',
+  },
+  submitButton: {
+    backgroundColor: '#4CAF50',
+    padding: 12,
+    borderRadius: 10,
+    marginVertical: 10,
+    width: '100%',
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#8BC34A',
+    padding: 12,
+    borderRadius: 10,
+    width: '100%',
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
 });
 
 export default UserSchedule;

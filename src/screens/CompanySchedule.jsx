@@ -1,15 +1,37 @@
-import React, { useState } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, Platform , Alert} from "react-native";
 import DateTimePicker from '@react-native-community/datetimepicker';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CompanySchedule = ({ navigation, route }) => {
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [company_id , setCompany_id]=useState(null);
   const location = "Madurai, TamilNadu,India";
   const { user_id } = route.params;
   console.log("clicked user id", user_id);
+
+  useEffect(() => {
+    const checkUserRole = async () => {
+      try {
+        const storedData = await AsyncStorage.getItem("@UserStore:data");
+        console.log("Raw Stored Data:", storedData);
+        
+        if (!storedData) {
+          console.warn("No user data found in AsyncStorage.");
+          return;
+        }
+  const parsedData = JSON.parse(storedData);
+        console.log("Parsed User ID:", parsedData.user_id);
+        setCompany_id(parsedData.user_id);
+      } catch (error) {
+        console.error("Error fetching user ID:", error);
+      }
+        }
+    checkUserRole();
+  }, []);
 
   const onDateChange = (event, selectedDate) => {
     setShowDatePicker(false);
@@ -26,26 +48,48 @@ const CompanySchedule = ({ navigation, route }) => {
   };
 
   const onConfirm = () => {
-    // Format the date and time for display
-    const formattedDate = date.toLocaleDateString();
-    const formattedTime = time.toLocaleTimeString();
-
-    alert(
+    const formattedDate = date.toISOString().split('T')[0]; // Ensures YYYY-MM-DD format
+    const formattedTime = time.toTimeString().split(' ')[0]; // Ensures HH:MM:SS format
+  
+    Alert.alert(
       "Confirm Schedule",
       `Do you want to confirm pickup for:\nDate: ${formattedDate}\nTime: ${formattedTime}\nLocation: ${location}`,
       [
         {
           text: "Cancel",
-          style: "cancel"
+          style: "cancel",
         },
         {
           text: "Confirm",
-          onPress: () => {
-            // Here you can add API call to save the schedule
-            alert("Success", "Pickup scheduled successfully!");
-            navigation.navigate("CompanyHomepage");
-          }
-        }
+          onPress: async () => {
+            console.log("Scheduling...");
+              const response = await fetch("https://binwinbackend.onrender.com/companySchedule", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  user_id: user_id,
+                  company_id: company_id,
+                  date: formattedDate,
+                  time: formattedTime,
+                }),
+              });
+              const text = await response.text();
+              console.log("Raw Response:", text);
+              
+              try {
+                const data = JSON.parse(text);
+                if (response.ok) {
+                  Alert.alert("Success", "Pickup Scheduled Successfully!");
+                  navigation.navigate("CompanyHomepage");
+                } else {
+                  Alert.alert("Error", data.error || "Failed to schedule pickup.");
+                }
+              } catch (error) {
+                console.error("JSON Parse Error:", error);
+                Alert.alert("Error", "Unexpected response from the server.");
+              }           
+          },
+        },
       ]
     );
   };

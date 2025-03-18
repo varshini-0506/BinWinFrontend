@@ -131,6 +131,12 @@ export default function HomePage({ navigation }) {
             Home
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("CompanydisplaySchedule")}>
+          <UserPlus size={26} color="#379237" />
+          <Text style={styles.activeNavText}>
+            Schedule
+          </Text>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.navItem} onPress={() => navigation.navigate("Login")}>
           <LogOut size={26} color="#379237" />
           <Text style={styles.navText}>

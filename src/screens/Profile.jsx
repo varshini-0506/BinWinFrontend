@@ -24,20 +24,16 @@ const Profile = ({navigation}) => {
     };
 
     launchImageLibrary(options, (response) => {
-      if (response.didCancel) {
-        console.log("User cancelled image picker");
-      } else if (response.errorMessage) {
-        console.log("ImagePicker Error: ", response.errorMessage);
-      } else if (response.assets && response.assets.length > 0) {
-        console.log("Image Response:", response.assets[0]);
-        console.log("Image URI:", response.assets[0].uri);
+      if (response.assets && response.assets.length > 0) {
+        //console.log("Image Response:", response.assets[0]);
+        //console.log("Image URI:", response.assets[0].uri);
         setImage(response.assets[0].uri);
       }
     });
   };
 
   const uploadToCloudinary = async (imageUri) => {
-    console.log("Uploading Image to Cloudinary");
+    //console.log("Uploading Image to Cloudinary");
     try {
       let formData = new FormData();
       formData.append("file", { uri: imageUri, type: "image/jpeg", name: "upload.jpg" });
@@ -51,7 +47,7 @@ const Profile = ({navigation}) => {
       });
   
       const data = await response.json();
-      console.log("Cloudinary Response:", data);
+      //console.log("Cloudinary Response:", data);
   
       if (data.secure_url) {
         return data.secure_url;  
@@ -59,7 +55,8 @@ const Profile = ({navigation}) => {
         throw new Error(data.error?.message || "Upload failed");
       }
     } catch (error) {
-      console.error("Error uploading image to Cloudinary:", error);
+      Alert.alert("Upload Failed", "Unable to upload image.");
+      //console.error("Error uploading image to Cloudinary:", error);
       return null;
     }
   };
@@ -99,7 +96,7 @@ const Profile = ({navigation}) => {
       });
 
       const data = await response.json();
-      console.log("Backend Response:", data);
+      //console.log("Backend Response:", data);
 
       if (response.ok) {
         Alert.alert("Success", "Profile saved successfully!");
@@ -108,7 +105,7 @@ const Profile = ({navigation}) => {
         throw new Error(data.message || "Something went wrong");
       }
     } catch (error) {
-      console.error("Backend Error:", error);
+      //console.error("Backend Error:", error);
       Alert.alert("Error", "Failed to save profile. Please try again.");
     } finally {
       setLoading(false);

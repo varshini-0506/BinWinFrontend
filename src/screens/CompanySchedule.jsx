@@ -11,23 +11,25 @@ const CompanySchedule = ({ navigation, route }) => {
   const [company_id , setCompany_id]=useState(null);
   const location = "Madurai, TamilNadu,India";
   const { user_id } = route.params;
-  console.log("clicked user id", user_id);
+  //console.log("clicked user id", user_id);
 
   useEffect(() => {
     const checkUserRole = async () => {
       try {
         const storedData = await AsyncStorage.getItem("@UserStore:data");
-        console.log("Raw Stored Data:", storedData);
+        //console.log("Raw Stored Data:", storedData);
         
         if (!storedData) {
-          console.warn("No user data found in AsyncStorage.");
+          Alert.alert("No user data found in AsyncStorage.");
+          //console.warn("No user data found in AsyncStorage.");
           return;
         }
   const parsedData = JSON.parse(storedData);
-        console.log("Parsed User ID:", parsedData.user_id);
+        //console.log("Parsed User ID:", parsedData.user_id);
         setCompany_id(parsedData.user_id);
       } catch (error) {
-        console.error("Error fetching user ID:", error);
+        Alert.alert("Failed to fetch user ID");
+        //console.error("Error fetching user ID:", error);
       }
         }
     checkUserRole();
@@ -62,7 +64,7 @@ const CompanySchedule = ({ navigation, route }) => {
         {
           text: "Confirm",
           onPress: async () => {
-            console.log("Scheduling...");
+            //console.log("Scheduling...");
               const response = await fetch("https://binwinbackend.onrender.com/companySchedule", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
@@ -74,7 +76,7 @@ const CompanySchedule = ({ navigation, route }) => {
                 }),
               });
               const text = await response.text();
-              console.log("Raw Response:", text);
+              //console.log("Raw Response:", text);
               
               try {
                 const data = JSON.parse(text);
@@ -85,7 +87,7 @@ const CompanySchedule = ({ navigation, route }) => {
                   Alert.alert("Error", data.error || "Failed to schedule pickup.");
                 }
               } catch (error) {
-                console.error("JSON Parse Error:", error);
+                //console.error("JSON Parse Error:", error);
                 Alert.alert("Error", "Unexpected response from the server.");
               }           
           },

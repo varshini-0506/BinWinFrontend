@@ -1,14 +1,15 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Alert, ActivityIndicator, StyleSheet } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 
-const Signup = ({navigation}) => {
+const Signup = ({ navigation }) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState(null);
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [items, setItems] = useState([
     { label: "Public", value: "Public" },
     { label: "Recycling Center", value: "Recycling Center" },
@@ -20,14 +21,14 @@ const Signup = ({navigation}) => {
       return;
     }
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match.');
+      Alert.alert("Error", "Passwords do not match.");
       return;
     }
 
+    setLoading(true);
     try {
-      console.log("Signing up...")
-      const response = await fetch('https://binwinbackend.onrender.com/signup', {
-        method: 'POST',
+      const response = await fetch("https://binwinbackend.onrender.com/signup", {
+        method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
@@ -47,15 +48,16 @@ const Signup = ({navigation}) => {
         Alert.alert("Error", data.error || "Signup failed.");
       }
     } catch (error) {
-      console.error("Signup error:", error);
       Alert.alert("Error", "Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome to BinWin !</Text>
-        <Text style={styles.title}> Create an Account to get started 🍀</Text>
+      <Text style={styles.title}>Create an Account to get started 🍀</Text>
       <TextInput
         style={styles.input}
         placeholder="Email"
@@ -81,7 +83,6 @@ const Signup = ({navigation}) => {
         secureTextEntry
       />
 
-      {/* Role Selection Dropdown */}
       <DropDownPicker
         open={open}
         value={role}
@@ -95,8 +96,16 @@ const Signup = ({navigation}) => {
         textStyle={styles.dropdownText}
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleSignUp}>
-        <Text style={styles.buttonText}>Sign Up</Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={handleSignUp}
+        disabled={loading}
+      >
+        {loading ? (
+          <ActivityIndicator color="white" />
+        ) : (
+          <Text style={styles.buttonText}>Sign Up</Text>
+        )}
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => navigation.navigate("Login")}>
@@ -152,6 +161,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 5,
     marginTop: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   buttonText: {
     color: "white",

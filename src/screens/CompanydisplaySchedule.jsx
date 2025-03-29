@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet, Image, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Image, ActivityIndicator,Alert } from 'react-native';
 import { CheckCircle, XCircle, Clock, Navigation } from 'lucide-react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -13,15 +13,16 @@ const CompanydisplaySchedule = ({navigation}) => {
     const fetchData = async () => {
       try {
         const storedData = await AsyncStorage.getItem("@UserStore:data");
-        console.log("Raw Stored Data:", storedData);
+        //console.log("Raw Stored Data:", storedData);
 
         if (!storedData) {
-          console.warn("No user data found in AsyncStorage.");
+          //console.warn("No user data found in AsyncStorage.");
+          Alert.alert("No user data found in AsyncStorage.");
           return;
         }
 
         const parsedData = JSON.parse(storedData);
-        console.log("Parsed User ID:", parsedData.user_id);
+        //console.log("Parsed User ID:", parsedData.user_id);
 
         setUserId(parsedData.user_id);
         const response = await fetch(`https://binwinbackend.onrender.com/displayCompanySchedule?user_id=${parsedData.user_id}`);

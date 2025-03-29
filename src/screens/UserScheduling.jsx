@@ -149,30 +149,6 @@ const UserSchedule = () => {
     }
   };  
 
-  try {
-    const response = await fetch("https://binwinbackend.onrender.com/acceptSchedule", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const result = await response.json();
-
-    if (response.ok) {
-      Alert.alert("Accepted", `Your collection is scheduled. You will receive ₹${userData.reimbursement.toFixed(2)}.`);
-      setShowAcceptModal(false);
-      setUserData({ mobile: "", wasteQuantity: "", reimbursement: 0 });
-    } else {
-      Alert.alert("Error", result.error || "Failed to accept schedule.");
-    }
-  } catch (error) {
-    //console.error("Error accepting schedule:", error);
-    Alert.alert("Error", "Something went wrong. Please try again.");
-  }
-};
-
 // Decline Modal Submit Handler
 const handleDeclineSubmit = async () => {
   if (!declineReason || !selectedDate) {

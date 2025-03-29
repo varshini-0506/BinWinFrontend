@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Image, StyleSheet, Alert, ActivityIndicator } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const Login = ({navigation}) => {
+const Login = ({ navigation }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState(null);
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false); // Loading state
   const [items, setItems] = useState([
     { label: "Public", value: "Public" },
     { label: "Recycling Center", value: "Recycling Center" },
@@ -21,8 +22,8 @@ const Login = ({navigation}) => {
   }, [email, password]);
 
   const handleLogin = async () => {
+    setLoading(true); // Start loading
     try {
-      console.log("Logging in...");
       const response = await fetch("https://binwinbackend.onrender.com/login", {
         method: "POST",
         headers: {
@@ -34,24 +35,24 @@ const Login = ({navigation}) => {
       const data = await response.json();
 
       if (response.ok) {
-        console.log("Login successful!", data);
-          try {
-            const userData =  JSON.stringify({
-              user_id: data.user.user_id,
-              role: role
-            });
-            await AsyncStorage.setItem('@UserStore:data', userData);
-            console.log('User data saved successfully',userData);
-          } catch (error) {
-            console.error('Error saving user data:', error);
-          }
+        try {
+          const userData = JSON.stringify({
+            user_id: data.user.user_id,
+            role: role,
+          });
+          await AsyncStorage.setItem('@UserStore:data', userData);
+        } catch (error) {
+          Alert.alert("Error saving user data");
+        }
         navigation.navigate("Splashscreen");
       } else {
         setError(data.message || "Invalid credentials. Please try again.");
       }
     } catch (error) {
-      console.error("Login error:", error);
+      Alert.alert("Login error", "An error occurred. Please try again later.");
       setError("An error occurred. Please try again later.");
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
@@ -97,8 +98,12 @@ const Login = ({navigation}) => {
         textStyle={{ color: "#379237" }}
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
+      <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={loading}>
+        {loading ? (
+          <ActivityIndicator size="small" color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>Login</Text>
+        )}
       </TouchableOpacity>
 
       <Text style={styles.forgotPassword}>Forgot Password?</Text>
@@ -164,6 +169,9 @@ const styles = StyleSheet.create({
     shadowRadius: 5,
     elevation: 5,
     marginTop: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
   buttonText: {
     color: "white",

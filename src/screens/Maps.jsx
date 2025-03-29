@@ -26,7 +26,7 @@ const Maps = ({navigation}) => {
         Alert.alert("Failed to load company data");
       }
     } catch (error) {
-      console.error("Error fetching company data:", error);
+      //console.error("Error fetching company data:", error);
       Alert.alert("Error fetching company data");
     }
   };
@@ -52,7 +52,7 @@ const Maps = ({navigation}) => {
         Alert.alert("Failed to load user data");
       }
     } catch (error) {
-      console.error("Error fetching user data:", error);
+      //console.error("Error fetching user data:", error);
       Alert.alert("Error fetching user data");
     }
   };

@@ -10,7 +10,7 @@ export async function getGeminiResponse(userInput) {
         const responseText = await result.response.text();
         return responseText;
     } catch (error) {
-        console.error("Error fetching Gemini response:", error);
+       // console.error("Error fetching Gemini response:", error);
         return "Sorry, I couldn't process your request.";
     }
 }

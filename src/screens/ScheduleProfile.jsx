@@ -32,7 +32,7 @@ const ScheduleProfile = ({route}) => {
   }, []);
 
   const handleButtonPress = () => {
-    console.log("Button Pressed!");
+    //console.log("Button Pressed!");
   };
 
   if (loading) {

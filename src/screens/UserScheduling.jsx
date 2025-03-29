@@ -49,15 +49,15 @@ const UserSchedule = () => {
     const fetchUserid = async () => {
       try {
         const storedData = await AsyncStorage.getItem("@UserStore:data");
-        console.log("Raw Stored Data:", storedData);
+        //console.log("Raw Stored Data:", storedData);
 
         if (!storedData) {
-          console.warn("No user data found in AsyncStorage.");
+          //console.warn("No user data found in AsyncStorage.");
           return;
         }
 
         const parsedData = JSON.parse(storedData);
-        console.log("Parsed User ID:", parsedData.user_id);
+        //console.log("Parsed User ID:", parsedData.user_id);
 
         setUserId(parsedData.user_id);
 
@@ -68,10 +68,11 @@ const UserSchedule = () => {
         if (response.ok) {
           setCompanies(data.schedules);
         } else {
-          console.error("Error fetching schedules:", data.error);
+          //console.error("Error fetching schedules:", data.error);
         }
       } catch (error) {
-        console.error("Error fetching user ID or schedules:", error);
+        Alert.alert("Error fetching user ID or schedules");
+        //console.error("Error fetching user ID or schedules:", error);
       }
     };
 
@@ -102,7 +103,7 @@ const UserSchedule = () => {
   const handleSelectImage = async (companyId) => {
     launchImageLibrary({ mediaType: "photo" }, async (response) => {
       if (response.didCancel) {
-        console.log("User cancelled image selection.");
+        //console.log("User cancelled image selection.");
         return;
       }
       if (response.assets) {
@@ -115,7 +116,8 @@ const UserSchedule = () => {
         try {
           await AsyncStorage.setItem('companies', JSON.stringify(updatedCompanies));
         } catch (error) {
-          console.error("Failed to save companies data:", error);
+          Alert.alert("Failed to save companies data");
+          //console.error("Failed to save companies data:", error);
         }
       } else {
         console.error("Failed to select image.");
@@ -147,20 +149,69 @@ const UserSchedule = () => {
     }
   };  
 
-  // Decline Modal Submit Handler
-  const handleDeclineSubmit = () => {
-    if (!declineReason || !selectedDate) {
-      Alert.alert("Error", "Please provide a reason and select a new collection date.");
-      return;
+  try {
+    const response = await fetch("https://binwinbackend.onrender.com/acceptSchedule", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      Alert.alert("Accepted", `Your collection is scheduled. You will receive ₹${userData.reimbursement.toFixed(2)}.`);
+      setShowAcceptModal(false);
+      setUserData({ mobile: "", wasteQuantity: "", reimbursement: 0 });
+    } else {
+      Alert.alert("Error", result.error || "Failed to accept schedule.");
     }
-    Alert.alert(
-      "Rescheduled",
-      `You have rescheduled to ${selectedDate}. We will notify you on that date.`
-    );
-    setShowDeclineModal(false);
-    setDeclineReason("");
-    setSelectedDate(null);
+  } catch (error) {
+    //console.error("Error accepting schedule:", error);
+    Alert.alert("Error", "Something went wrong. Please try again.");
+  }
+};
+
+// Decline Modal Submit Handler
+const handleDeclineSubmit = async () => {
+  if (!declineReason || !selectedDate) {
+    Alert.alert("Error", "Please provide a reason and select a new collection date.");
+    return;
+  }
+
+  const payload = {
+    id: selectedCompany.id,
+    company_id: selectedCompany.company_id,
+    user_id: userId,
+    reason: declineReason,
+    date: selectedDate,
   };
+
+  try {
+    const response = await fetch("https://binwinbackend.onrender.com/rejectSchedule", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    const result = await response.json();
+
+    if (response.ok) {
+      Alert.alert("Rescheduled", `You have rescheduled to ${selectedDate}. We will notify you on that date.`);
+      setShowDeclineModal(false);
+      setDeclineReason("");
+      setSelectedDate(null);
+    } else {
+      Alert.alert("Error", result.error || "Failed to decline schedule.");
+    }
+  } catch (error) {
+    console.error("Error declining schedule:", error);
+    Alert.alert("Error", "Something went wrong. Please try again.");
+  }
+};
 
   return (
     <ScrollView style={styles.container}>

@@ -9,6 +9,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
+  Alert,
 } from "react-native";
 import { getGeminiResponse } from "./chat2";
 import TTS from "react-native-tts";
@@ -32,7 +33,8 @@ export default function Chatbot({ navigation }) {
       setMessages([...newMessages, { role: "assistant", content: aiResponse }]);
       TTS.speak(aiResponse);
     } catch (error) {
-      console.error("Error fetching response:", error);
+      Alert.alert("Error", "Sorry, I couldn't process your request.");	
+      //console.error("Error fetching response:", error);
     }
   };
 

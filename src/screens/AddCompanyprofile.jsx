@@ -48,7 +48,7 @@ const AddCompanyprofile = ({navigation}) => {
       const data = await response.json();
       return data.secure_url;
     } catch (error) {
-      console.error("Upload Error:", error);
+      //console.error("Upload Error:", error);
       Alert.alert("Upload Failed", "Unable to upload image.");
       return null;
     }
@@ -79,7 +79,7 @@ const AddCompanyprofile = ({navigation}) => {
       });
 
       const data = await response.json();
-      console.log("Response:", data);
+      //console.log("Response:", data);
       if (response.ok) {
         Alert.alert("Success", "Profile saved successfully!");
     navigation.navigate("Companyprofile");
@@ -87,7 +87,7 @@ const AddCompanyprofile = ({navigation}) => {
         throw new Error(data.message || "Failed to save profile");
       }
     } catch (error) {
-      console.error("Error:", error);
+      //console.error("Error:", error);
       Alert.alert("Error", "Something went wrong!");
     }
   };

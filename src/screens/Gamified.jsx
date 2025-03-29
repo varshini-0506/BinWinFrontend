@@ -10,6 +10,7 @@ import {
   Image,
   Dimensions,
   StyleSheet,
+  Alert
 } from 'react-native';
 import {Camera} from 'react-native-vision-camera';
 import {launchCamera} from 'react-native-image-picker';
@@ -54,14 +55,15 @@ export default function Gamified({navigation}) {
   const cameraRef = useRef(null);
   const [images, setImages] = useState({"front_view":"", "top_view1":"", "top_view2":"", "top_view3":""});
   const [submitImageModel, setSubmitImageModel] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   useEffect(() => {
-    console.log('useEffect triggered!');
+    //console.log('useEffect triggered!');
 
     (async () => {
-      console.log('Requesting camera permission...');
+      //console.log('Requesting camera permission...');
       const cameraPermission = await Camera.requestCameraPermission();
-      console.log('Camera permission result:', cameraPermission);
+      //console.log('Camera permission result:', cameraPermission);
 
       if (cameraPermission === 'granted') {
         setHasCameraPermission(true);
@@ -91,11 +93,7 @@ const openCamera = async () => {
   };
 
   launchCamera(options, response => {
-    if (response.didCancel) {
-      console.log('User cancelled image picker');
-    } else if (response.errorCode) {
-      console.log('ImagePicker Error: ', response.errorMessage);
-    } else if (response.assets && response.assets.length > 0) {
+     if (response.assets && response.assets.length > 0) {
       const newImageUri = response.assets[0].uri;
 
       setImages(prevImages => {
@@ -144,7 +142,7 @@ const uploadToCloudinary = async (imageUri) => {
     });
 
     const data = await response.json();
-    console.log("Cloudinary Response:", data);
+    //console.log("Cloudinary Response:", data);
 
     if (data.secure_url) {
       return data.secure_url;  
@@ -152,7 +150,8 @@ const uploadToCloudinary = async (imageUri) => {
       throw new Error(data.error?.message || "Upload failed");
     }
   } catch (error) {
-    console.error("Error uploading image to Cloudinary:", error);
+    Alert.alert("Error", "Failed to upload image to Cloudinary.");	
+    //console.error("Error uploading image to Cloudinary:", error);
     return null;
   }
 };
@@ -170,7 +169,8 @@ const resizeImage = async (uri) => {
 
 const handleSubmit = async () => {
   try {
-    console.log("Original Images:", images);
+    setIsAnalyzing(true);
+    //console.log("Original Images:", images);
 
     // Resize images before uploading
     const resizedImages = {
@@ -182,7 +182,7 @@ const handleSubmit = async () => {
       ),
     };
 
-    console.log("Resized Images:", resizedImages);
+    //console.log("Resized Images:", resizedImages);
 
     // Upload images to Cloudinary
     const frontViewUrl = resizedImages.front_view
@@ -195,9 +195,9 @@ const handleSubmit = async () => {
       )
     );
 
-    console.log("Front View URL:", frontViewUrl);
-    console.log("Top Views URLs:", topViewUrls);
-    console.log("Uploaded URLs:", { front_view: frontViewUrl, top_views: topViewUrls });
+    //console.log("Front View URL:", frontViewUrl);
+    //console.log("Top Views URLs:", topViewUrls);
+    //console.log("Uploaded URLs:", { front_view: frontViewUrl, top_views: topViewUrls });
 
     if (
       !frontViewUrl ||
@@ -206,6 +206,7 @@ const handleSubmit = async () => {
       !selectedLevel.level
     ) {
       alert("⚠️ Please fill all required fields!");
+      setIsAnalyzing(false);
       return;
     }
 
@@ -222,7 +223,9 @@ const handleSubmit = async () => {
     });
 
     const data = await response.json();
-    console.log("Server Response:", data);
+    //console.log("Server Response:", data);
+    setIsAnalyzing(false); // Hide the analyzing modal
+
 
     if (response.ok && data.classification_results) {
       const classifications = data.classification_results.map((result) => result.join(', '));
@@ -244,7 +247,10 @@ ${classificationMessage}`);
       alert(`⚠️ Try again! ${data.detected_bins} Bins detected.`);
     }
   } catch (error) {
-    console.error("Error submitting images:", error);
+    Alert.alert("Error", "An error occurred while submitting. Please try again later.");  
+    //console.error("Error submitting images:", error);
+    setIsAnalyzing(false);
+
     alert("❌ An error occurred while submitting. Please try again later.");
   }
 };
@@ -473,6 +479,14 @@ ${classificationMessage}`);
                 </View>
               </View>
             </Modal>
+            <Modal visible={isAnalyzing} transparent animationType="fade">
+  <View style={styles.modalContainerloading}>
+    <View style={styles.modalContentloading}>
+      <Text style={styles.modalText}>🔍 Analyzing Images...</Text>
+    </View>
+  </View>
+</Modal>
+
           </View>
         </ScrollView>
       </View>
@@ -730,10 +744,34 @@ const styles = StyleSheet.create({
     backgroundColor: '#DFFFD6',
     borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
     shadowColor: '#379237',
     shadowOpacity: 0.4,
     shadowRadius: 6,
     elevation: 4,
+  },
+  modalContainerloading: {
+    flex: 1,               // This ensures the modal takes the full screen space
+    justifyContent: "center",  
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",  // Dim the background
+  },
+  modalContentloading: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",   // Ensure content is centered inside the box
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  modalText: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
   },
   imageContainer: {
     flexDirection: 'row',

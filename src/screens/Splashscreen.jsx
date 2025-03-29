@@ -26,7 +26,7 @@ export default function SplashScreen({ navigation }) {
         if (storedData !== null) {
           const parsedData = JSON.parse(storedData);
           role = parsedData.role;
-          console.log("User Role:", role);
+          //console.log("User Role:", role);
         }
 
         setTimeout(() => {
@@ -37,7 +37,7 @@ export default function SplashScreen({ navigation }) {
           }
         }, 5000);
       } catch (error) {
-        console.error("Error fetching role:", error);
+        //console.error("Error fetching role:", error);
       }
     };
 

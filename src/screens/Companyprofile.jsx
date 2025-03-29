@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react"; 
-import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator } from "react-native";
+import { View, Text, Image, TouchableOpacity, StyleSheet, ScrollView, ActivityIndicator, Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Companyprofile = ({navigation}) => {
@@ -12,18 +12,20 @@ const Companyprofile = ({navigation}) => {
       const fetchUserid = async () => {
         try {
           const storedData = await AsyncStorage.getItem("@UserStore:data");
-          console.log("Raw Stored Data:", storedData);
+          //console.log("Raw Stored Data:", storedData);
           
           if (!storedData) {
-            console.warn("No user data found in AsyncStorage.");
+            Alert.alert("No user data found in AsyncStorage.");
+            //console.warn("No user data found in AsyncStorage.");
             return;
           }
     
           const parsedData = JSON.parse(storedData);
-          console.log("Parsed User ID:", parsedData.user_id);
+          //console.log("Parsed User ID:", parsedData.user_id);
           setUserId(parsedData.user_id);
         } catch (error) {
-          console.error("Error fetching user ID:", error);
+          Alert.alert("Failed to fetch user ID");
+          //console.error("Error fetching user ID:", error);
         }
       };
     
@@ -32,16 +34,17 @@ const Companyprofile = ({navigation}) => {
     
     useEffect(() => {
       if (!userId) {
-        console.log("User ID is still null, skipping API call...");
+        Alert.alert("User ID is null, skipping API call...");
+        //console.log("User ID is still null, skipping API call...");
         return;
       }
     
       const fetchProfile = async () => {
         try {
-          console.log("Fetching profile for user ID:", userId);
+          //console.log("Fetching profile for user ID:", userId);
           const response = await fetch(`https://binwinbackend.onrender.com/displaycompanyprofile?user_id=${userId}`);
           const data = await response.json();
-          console.log("Fetched Data:", data.profile);
+          //console.log("Fetched Data:", data.profile);
     
           if (data.profile) {
             setProfileData(data.profile);
@@ -49,7 +52,8 @@ const Companyprofile = ({navigation}) => {
             setError("Failed to load profile");
           }
         } catch (error) {
-          console.error("Error fetching profile:", error);
+          Alert.alert("Failed to load profile");
+          //console.error("Error fetching profile:", error);
           setError("Failed to load profile");
         } finally {
           setLoading(false);

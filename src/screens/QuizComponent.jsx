@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, ActivityIndicator, Image, Animated } from "react-native";
+import { View, Text, TouchableOpacity, ActivityIndicator, Image, Animated, Alert } from "react-native";
 import { Home, User, Trophy, Gamepad, ArrowLeft } from "lucide-react-native";
 import { StyleSheet } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -46,7 +46,7 @@ export default function QuizComponent({ navigation }) {
       if (!response.ok) throw new Error("Failed to fetch quiz questions");
   
       const data = await response.json();
-      console.log("Raw API Response:", JSON.stringify(data, null, 2));
+      //console.log("Raw API Response:", JSON.stringify(data, null, 2));
   
       const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
       if (!aiResponse) throw new Error("No response from AI");
@@ -62,11 +62,11 @@ export default function QuizComponent({ navigation }) {
         setScore(0);
         setQuizCompleted(false);
       } catch (jsonError) {
-        console.error("Error parsing JSON:", jsonError, "Raw Response:", aiResponse);
+        //console.error("Error parsing JSON:", jsonError, "Raw Response:", aiResponse);
         throw new Error("Failed to parse AI response JSON");
       }
     } catch (error) {
-      console.error("Error fetching quiz questions:", error);
+      //console.error("Error fetching quiz questions:", error);
     } finally {
       setLoading(false);
     }
@@ -106,12 +106,6 @@ export default function QuizComponent({ navigation }) {
           });
 
           const data = await response.json();
-
-          if (response.ok) {
-            console.log("Quiz score saved successfully!", data);
-          } else {
-            console.error("Failed to save quiz score:", data.message || "Unknown error");
-          }
         } catch (error) {
           console.error("Error saving quiz score:", error);
         }

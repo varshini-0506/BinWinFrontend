@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Image, TouchableOpacity, Dimensions, StyleSheet, ScrollView, ActivityIndicator } from "react-native";
+import { View, Text, Image, TouchableOpacity, Dimensions, StyleSheet, ScrollView, ActivityIndicator, Alert } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { BarChart } from "react-native-chart-kit";
 import { Home, User, Trophy, Gamepad } from "lucide-react-native";
@@ -33,7 +33,8 @@ const Displayprofile = () => {
           setUserId(parsedData.user_id); // ✅ Set userId state
         }
       } catch (error) {
-        console.error("Error fetching user ID:", error);
+        Alert.alert("Failed to fetch user ID");
+        //console.error("Error fetching user ID:", error);
       }
     };
 

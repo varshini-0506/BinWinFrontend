@@ -208,9 +208,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   buildingImage: {
-    width: 180,
-    height: 180,
-    borderRadius: 90, // Fully rounded
+    width: 200,
+    height: 200,
+    //borderRadius: 90, // Fully rounded
     borderWidth: 4,
     borderColor: "#166534",
     marginBottom: 15,

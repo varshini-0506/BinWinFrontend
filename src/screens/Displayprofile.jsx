@@ -20,7 +20,7 @@ const getTreeImage = (visits) => {
 const Displayprofile = () => {
   const navigation = useNavigation();
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState();
   const [error, setError] = useState("");
   const [userId, setUserId] = useState(null);
 
@@ -42,12 +42,13 @@ const Displayprofile = () => {
   }, []);
 
   useEffect(() => {
-    if (!userId) return; // Wait for userId to be set
+   // if (!userId) return; // Wait for userId to be set
 
     const fetchUserProfile = async () => {
       try {
+        setLoading(true);
         const response = await fetch(
-          `https://binwinbackend.onrender.com/displayprofile?user_id=${userId}`
+          `https://binwinbackend.onrender.com/displayprofile?user_id=1`
         );
         const data = await response.json();
         if (data.profile) {

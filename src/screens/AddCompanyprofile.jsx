@@ -72,7 +72,6 @@ const AddCompanyprofile = ({navigation}) => {
     };
 
     try {
-      //console.log("api caling");
       const response = await fetch("https://binwinbackend.onrender.com/getcompanyprofile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

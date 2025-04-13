@@ -125,42 +125,29 @@ const UserSchedule = () => {
     });
   };
 
-// Accept Modal Submit Handler
-const handleAcceptSubmit = async () => {
-  if (!userData.wasteQuantity) {
-    Alert.alert("Error", "Please enter waste quantity.");
-    return;
-  }
-
-  const payload = {
-    id: selectedCompany.id,
-    company_id: selectedCompany.company_id,
-    user_id: userId,
-  };
-
-  try {
-    const response = await fetch("https://binwinbackend.onrender.com/acceptSchedule", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-
-    const result = await response.json();
-
-    if (response.ok) {
-      Alert.alert("Accepted", `Your collection is scheduled. You will receive ₹${userData.reimbursement.toFixed(2)}.`);
-      setShowAcceptModal(false);
-      setUserData({ mobile: "", wasteQuantity: "", reimbursement: 0 });
-    } else {
-      Alert.alert("Error", result.error || "Failed to accept schedule.");
+  // Accept Modal Submit Handler
+  const handleAcceptSubmit = async () => {
+    console.log("Accepting schedule...");
+    console.log(selectedCompany)
+    try {
+      const response = await fetch('https://binwinbackend.onrender.com/acceptSchedule', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ user_id: userId, company_id: selectedCompany.company_id, id: selectedCompany.schedule_id }),
+      });
+      const result = await response.json();
+      if (response.ok) {
+        Alert.alert("Accepted", "Your collection is scheduled successfully.");
+      } else {
+        Alert.alert("Error", result.error || "Something went wrong.");
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to accept schedule.");
+      console.error('API call error:', error);
     }
-  } catch (error) {
-    //console.error("Error accepting schedule:", error);
-    Alert.alert("Error", "Something went wrong. Please try again.");
-  }
-};
+  };  
 
 // Decline Modal Submit Handler
 const handleDeclineSubmit = async () => {
@@ -219,6 +206,7 @@ const handleDeclineSubmit = async () => {
           <Text style={styles.subtitle}>📅 Scheduled: {company.date} - {company.time}</Text>
           <Text style={styles.subtitle}>📞 Contact: {company.contact_number}</Text>
           <Text style={styles.subtitle}>💰 Price: ₹{company.price}/kg</Text>
+          {company.status == 'no' ?
           <View style={styles.row}>
             <TouchableOpacity
               style={styles.acceptButton}
@@ -232,7 +220,8 @@ const handleDeclineSubmit = async () => {
             >
               <Text style={styles.buttonText}>Decline</Text>
             </TouchableOpacity>
-          </View>
+          </View> : <Text style={styles.status}>{company.status}</Text>
+}
         </View>
       ))}
      <Modal visible={showAcceptModal} animationType="slide" transparent={true}>
@@ -383,6 +372,16 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+  status:{
+    backgroundColor: '#8BC34A',
+    padding: 12,
+    borderRadius: 10,
+    width: '100%',
+    alignItems: 'center',
+    color:"white",
+    textAlign: 'center',
+    fontSize: 16,
+  }
 });
 
 export default UserSchedule;
